@@ -478,6 +478,11 @@ body {
         height: 56px !important;
     }
 
+    .chat-page {
+        height: calc(100vh - 56px) !important;
+        height: calc(100dvh - 56px) !important;
+    }
+
     .chat-header-left {
         gap: 8px !important;
     }
@@ -609,8 +614,9 @@ body {
 
     
     .chat-input-area {
-        padding: 0px 15px 10px 15px !important;
-        background-color: transparent !important;
+        padding: 5px 15px calc(10px + env(safe-area-inset-bottom)) 15px !important;
+        background-color: var(--primary) !important;
+        border-top: 1px solid rgba(0,0,0,0.05);
     }
 
     .chat-input-row {
