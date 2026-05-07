@@ -330,19 +330,19 @@ document.addEventListener('DOMContentLoaded', () => {
     initCookieConsent();
 
     // --- LÓGICA DE ASISTENCIA AL CLIENTE ---
-    const asistenciaLink = document.getElementById('asistencia-cliente');
-    if (asistenciaLink) {
-        asistenciaLink.addEventListener('click', (e) => {
+    const asistenciaLinks = document.querySelectorAll('#asistencia-cliente');
+    asistenciaLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
             e.preventDefault();
             const adminUID = "Phym2MgXuhMKqOLV97cUe5uzDKC2";
             const isPage = window.location.pathname.includes('/pages/');
-            const chatUrl = isPage ? `chat.html?id=${adminUID}` : `pages/chat.html?id=${adminUID}`;
+            const chatUrl = isPage ? `chat.html?userId=${adminUID}` : `pages/chat.html?userId=${adminUID}`;
             
             window.verificarSesion(() => {
                 window.location.href = chatUrl;
             }, "abrir un chat de asistencia");
         });
-    }
+    });
 
 });
 
@@ -526,9 +526,8 @@ async function renderNotifications() {
 }
 
 function getNotifIcon(tipo) {
-    const base = window.location.pathname.includes('/pages/') ? '../assets/img/icons/' : 'frontend/assets/img/icons/';
+    const base = window.location.pathname.includes('/pages/') ? '../assets/img/icons/' : 'assets/img/icons/';
     switch (tipo) {
-       
         case 'nivel': return base + 'noti/icono-noti-nivel.png';
         case 'mensaje': return base + 'noti/icono-noti-nuevo-mensaje.png';
         case 'pago': return base + 'noti/icono-noti-pago.png';
@@ -541,7 +540,6 @@ function getNotifIcon(tipo) {
         case 'tarea_abandonada': return base + 'icono-no-blanco.png';
         case 'rechazado': return base + 'icono-no-blanco.png';
         case 'aceptado': return base + 'icono-si-blanco.png';
-       
         case 'info': return base + 'icono-notificaciones.png';
         default: return base + 'icono-notificaciones.png';
     }

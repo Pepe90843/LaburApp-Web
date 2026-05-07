@@ -21,9 +21,13 @@ let otherUserData = null;
 const urlParams = new URLSearchParams(window.location.search);
 const idTrabajo = urlParams.get('id');
 const userIdDirect = urlParams.get('userId');
-// --- PRIORIZAR MODO TRABAJO SI HAY ID DE TRABAJO ---
+const adminUID = "Phym2MgXuhMKqOLV97cUe5uzDKC2";
+
+// --- PRIORIZAR MODO TRABAJO SI HAY ID DE TRABAJO, PERO NUNCA PARA ASISTENCIA (ADMIN) ---
 let chatMode = 'direct';
-if (idTrabajo) {
+if (userIdDirect === adminUID) {
+    chatMode = 'direct';
+} else if (idTrabajo) {
     chatMode = 'job';
 } else if (!userIdDirect) {
     showCustomAlert("Error", "No se ha especificado un destinatario para el chat.", "Ir a Mensajes", () => {
