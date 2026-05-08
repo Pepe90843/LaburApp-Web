@@ -622,7 +622,7 @@ body {
         width: 100% !important;
         box-sizing: border-box !important;
         z-index: 2000 !important;
-        padding: 10px 15px calc(20px + env(safe-area-inset-bottom)) 15px !important;
+        padding: 10px 15px calc(10px + env(safe-area-inset-bottom)) 15px !important;
         background-color: var(--primary) !important;
         border-top: 1px solid rgba(0,0,0,0.05);
     }
@@ -642,6 +642,7 @@ body {
         border: none !important;
         margin: 0 !important;
         min-height: auto !important;
+        min-width: 0 !important; /* Permite que el input se encoja en flexbox */
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
     }
 
@@ -649,6 +650,7 @@ body {
         gap: 10px !important;
         display: flex;
         align-items: center;
+        flex-shrink: 0 !important; /* Evita que los iconos se aplasten */
     }
 
     .btn-action-icon {
