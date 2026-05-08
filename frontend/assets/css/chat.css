@@ -5,6 +5,7 @@ body {
     
     overflow: hidden !important;
     height: 100vh;
+    height: 100dvh;
     margin: 0;
 }
 
@@ -466,8 +467,9 @@ body {
 /* --- RESPONSIVE (MAX 768PX) --- */
 @media (max-width: 768px) {
 
-    /* --- OCULTAR FOOTER --- */
-    footer {
+    /* --- OCULTAR FOOTER Y HEADER PRINCIPAL --- */
+    footer,
+    header {
         display: none !important;
     }
 
@@ -479,8 +481,8 @@ body {
     }
 
     .chat-page {
-        height: calc(100vh - 56px) !important;
-        height: calc(100dvh - 56px) !important;
+        height: 100vh !important;
+        height: 100dvh !important;
     }
 
     .chat-header-left {
