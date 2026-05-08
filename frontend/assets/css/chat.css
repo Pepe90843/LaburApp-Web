@@ -562,7 +562,7 @@ body {
     /* --- REDUCIR CUADROS DE MENSAJES ESTILO WHATSAPP --- */
     .messages-container {
         padding: 10px !important;
-        padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+        padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
         gap: 10px !important;
     }
 
