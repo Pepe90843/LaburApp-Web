@@ -11,11 +11,20 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
+from decouple import Csv, config
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def cast_debug(value):
+    normalized_value = str(value).strip().lower()
+    if normalized_value in {'true', '1', 'yes', 'on', 'debug', 'development', 'dev'}:
+        return True
+    if normalized_value in {'false', '0', 'no', 'off', 'release', 'production', 'prod'}:
+        return False
+    raise ValueError(f"Invalid DEBUG value: {value}")
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,9 +34,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', cast=bool)
+DEBUG = config('DEBUG', default=True, cast=cast_debug)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver', cast=Csv())
 
 
 # Application definition
@@ -40,7 +49,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'api',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -76,14 +91,14 @@ WSGI_APPLICATION = 'LaburApp.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': 'localhost',
-        'PORT': '5433',
-    }
+    'default': dj_database_url.config(
+        default=(
+            f"postgres://{config('DB_USER')}:{config('DB_PASSWORD')}"
+            f"@{config('DB_HOST', default='localhost')}:"
+            f"{config('DB_PORT', default='5433')}/{config('DB_NAME')}"
+        ),
+        conn_max_age=600,
+    )
 }
 
 
