@@ -562,6 +562,7 @@ body {
     /* --- REDUCIR CUADROS DE MENSAJES ESTILO WHATSAPP --- */
     .messages-container {
         padding: 10px !important;
+        padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
         gap: 10px !important;
     }
 
@@ -615,6 +616,12 @@ body {
 
     
     .chat-input-area {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        z-index: 2000 !important;
         padding: 5px 15px calc(10px + env(safe-area-inset-bottom)) 15px !important;
         background-color: var(--primary) !important;
         border-top: 1px solid rgba(0,0,0,0.05);
@@ -623,7 +630,8 @@ body {
     .chat-input-row {
         gap: 10px !important;
         align-items: center !important;
-        margin-left: -5px;
+        width: 100% !important;
+        margin: 0 !important;
     }
 
     #message-input {
