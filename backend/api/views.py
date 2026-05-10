@@ -41,6 +41,25 @@ from .serializers import (
 
 class BaseModelViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    ignored_filter_params = {"search", "ordering", "page", "page_size", "format"}
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        model_fields = {field.name: field for field in queryset.model._meta.fields}
+        model_fields.update(
+            {f"{field.name}_id": field for field in queryset.model._meta.fields if field.is_relation}
+        )
+
+        exact_filters = {}
+        for param, value in self.request.query_params.items():
+            if param in self.ignored_filter_params or value == "":
+                continue
+            if param in model_fields:
+                exact_filters[param] = value
+
+        if exact_filters:
+            queryset = queryset.filter(**exact_filters)
+        return queryset
 
 
 class UsuarioViewSet(BaseModelViewSet):
@@ -148,8 +167,27 @@ class CompositeKeyViewSet(
     viewsets.GenericViewSet,
 ):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    ignored_filter_params = {"search", "ordering", "page", "page_size", "format"}
     lookup_url_kwargs = ()
     lookup_model_fields = ()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        model_fields = {field.name: field for field in queryset.model._meta.fields}
+        model_fields.update(
+            {f"{field.name}_id": field for field in queryset.model._meta.fields if field.is_relation}
+        )
+
+        exact_filters = {}
+        for param, value in self.request.query_params.items():
+            if param in self.ignored_filter_params or value == "":
+                continue
+            if param in model_fields:
+                exact_filters[param] = value
+
+        if exact_filters:
+            queryset = queryset.filter(**exact_filters)
+        return queryset
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
