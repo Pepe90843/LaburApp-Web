@@ -1,5 +1,4 @@
-import { auth, db, storage } from './firebase-config.js';
-import { collection, query, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { auth, storage } from './firebase-config.js';
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 import { obtenerPerfilUsuario, actualizarPerfilUsuario, obtenerTodosPuntosCategorias, cancelarSuscripcionUsuario, cambiarPassword } from './database.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -75,16 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const perfil = await obtenerPerfilUsuario(user.uid);
                
-                const q = query(collection(db, "usuarios", user.uid, "puntuaciones_categorias"));
-                const snapshot = await getDocs(q);
-                const ptsCat = [];
-                snapshot.forEach(docSnap => {
-                    ptsCat.push({
-                        id_categoria: docSnap.id,
-                        puntos: docSnap.data().puntos || 0,
-                        fecha_creacion: docSnap.data().fecha_creacion?.toDate ? docSnap.data().fecha_creacion.toDate() : (docSnap.data().fecha_creacion || 0)
-                    });
-                });
+                const ptsCat = await obtenerTodosPuntosCategorias(user.uid);
 
                 if (perfil) {
                    

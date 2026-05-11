@@ -77,6 +77,7 @@ class Trabajo(models.Model):
     fecha_publicacion = models.DateTimeField(auto_now_add=True)
     fecha_actividad = models.DateTimeField(auto_now=True)
     fecha_limite = models.DateTimeField(blank=True, null=True)
+    fecha_aceptacion = models.DateTimeField(blank=True, null=True)
     fecha_inicio = models.DateTimeField(blank=True, null=True)
     fecha_completada = models.DateTimeField(blank=True, null=True)
     tiempo_estimado_horas = models.IntegerField(blank=True, null=True)
@@ -89,6 +90,8 @@ class Trabajo(models.Model):
     xp_ajustado_por_valoracion = models.BooleanField(default=False)
     nota_sistema = models.TextField(blank=True, null=True)
     admin_leido = models.BooleanField(default=False)
+    prueba_finalizado = models.TextField(blank=True, null=True)
+    resolucion_finalizada = models.BooleanField(default=False)
 
     class Meta:
         db_table = "trabajos"

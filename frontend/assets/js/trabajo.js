@@ -1,6 +1,5 @@
-import { auth, db } from './firebase-config.js';
-import { obtenerTrabajoPorId, postularseATrabajo, usuarioTieneMetodoPago } from './database.js';
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { auth } from './firebase-config.js';
+import { obtenerTrabajoPorId, obtenerPostulacionesDeUnTrabajo, postularseATrabajo, usuarioTieneMetodoPago } from './database.js';
 
 document.addEventListener("DOMContentLoaded", async function () {
    
@@ -55,10 +54,10 @@ document.addEventListener("DOMContentLoaded", async function () {
                 return;
             }
 
-            const postRef = doc(db, "trabajos", trabajo.id, "postulaciones", user.uid);
-            const postSnap = await getDoc(postRef);
+            const postulaciones = await obtenerPostulacionesDeUnTrabajo(trabajo.id);
+            const yaPostulado = postulaciones.some((post) => post.id_usuario === user.uid);
 
-            if (postSnap.exists()) {
+            if (yaPostulado) {
                 if (btnPostular) {
                     btnPostular.innerText = "YA POSTULADO";
                     btnPostular.disabled = true;

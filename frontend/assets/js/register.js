@@ -1,6 +1,6 @@
-import { auth, db } from './firebase-config.js';
+import { auth } from './firebase-config.js';
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, setDoc, query, where, getDocs, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { crearUsuario, existeUsuarioConDni } from './database.js';
 
 const formRegister = document.getElementById("formRegister");
 const fase1 = document.getElementById("fase1");
@@ -156,17 +156,11 @@ if (formRegister) {
             return;
         }
 
-        let formattedDate = dNac;
-        if (dNac.includes("-") && dNac.split("-")[0].length === 4) {
-            const parts = dNac.split("-");
-            formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
+        const formattedDate = dNac;
 
         try {
             console.log("Verificando DNI único...");
-            const q = query(collection(db, "usuarios"), where("dni", "==", dni));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
+            if (await existeUsuarioConDni(dni)) {
                 errorMsg.textContent = "Ya existe un usuario registrado con este DNI.";
                 return;
             }
@@ -174,14 +168,13 @@ if (formRegister) {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            await setDoc(doc(db, "usuarios", user.uid), {
+            await crearUsuario(user.uid, {
                 nombre: nombre,
                 nombre_completo: nombre + " " + apellidos,
                 apellidos: apellidos,
                 dni: dni,
                 email: email,
                 fecha_nacimiento: formattedDate, 
-                fecha_ingreso: serverTimestamp(), 
                 nivel: 1,
                 experiencia_total: 0,
                 experiencia_nivel_actual: 0,

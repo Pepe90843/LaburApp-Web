@@ -1,4 +1,4 @@
-import { auth, db } from './firebase-config.js';
+import { auth } from './firebase-config.js';
 import { 
     obtenerPerfilUsuario, 
     obtenerNotificaciones, 
@@ -10,7 +10,6 @@ import {
     verificarSuscripcionesRecurrentes,
     ejecutarResolucionTarea
 } from './database.js';
-import { onSnapshot, collection, query, where, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { initCookieConsent } from './cookies.js';
 // --- UTILIDAD GLOBAL: VERIFICAR SESIÓN ---// --- ESTA FUNCIÓN COMPRUEBA SI EL USUARIO ESTÁ LOGUEADO. SI NO, MUESTRA EL MODAL DE BLOQUEO. ---
 window.verificarSesion = function (callback, mensajeAux = "realizar esta acción") {
@@ -98,8 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // --- VERIFICAR BANEO ---
                 if (perfil.baneado) {
                     const ahora = Date.now();
-                    if (perfil.baneado_hasta === -1 || ahora < perfil.baneado_hasta) {
-                        const hastaStr = perfil.baneado_hasta === -1 ? "de forma permanente" : "hasta el " + new Date(perfil.baneado_hasta).toLocaleString();
+                    const baneadoHastaMs = perfil.baneado_hasta ? new Date(perfil.baneado_hasta).getTime() : null;
+                    const permanente = perfil.baneado_hasta && perfil.baneado_hasta.startsWith("9999-");
+                    if (permanente || (baneadoHastaMs && ahora < baneadoHastaMs)) {
+                        const hastaStr = permanente ? "de forma permanente" : "hasta el " + new Date(perfil.baneado_hasta).toLocaleString();
                         window.showCustomAlert("Acceso Denegado", `Tu cuenta está restringida ${hastaStr}. Motivo: ${perfil.motivo_baneo || 'No especificado'}`, "Aceptar", () => {
                             auth.signOut();
                         });
@@ -672,19 +673,18 @@ function setupNotificationBadgeListener(uid) {
         notifLink.appendChild(badge);
     }
 
-    const q = query(
-        collection(db, "usuarios", uid, "notificaciones")
-    );
-
-    onSnapshot(q, (snapshot) => {
-        const count = snapshot.size;
+    const refreshBadge = async () => {
+        const count = (await obtenerNotificaciones(uid)).filter((notif) => !notif.leida).length;
         if (count > 0) {
             badge.textContent = count > 99 ? '99+' : count;
             badge.classList.remove('hidden');
         } else {
             badge.classList.add('hidden');
         }
-    });
+    };
+
+    refreshBadge().catch(console.error);
+    setInterval(() => refreshBadge().catch(console.error), 30000);
 }
 
 window.showChangePasswordModal = function (onConfirm) {

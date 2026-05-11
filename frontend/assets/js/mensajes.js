@@ -1,5 +1,4 @@
-import { db, auth } from './firebase-config.js';
-import { collection, query, where, limit, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { auth } from './firebase-config.js';
 import {
     obtenerTodasLasConversaciones,
     obtenerUsuarioPorId,
@@ -7,7 +6,9 @@ import {
     obtenerTodosPuntosCategorias,
     obtenerTrabajoPorId,
     generarIdChat,
-    eliminarReferenciaConversacion
+    eliminarReferenciaConversacion,
+    obtenerUltimoMensaje,
+    tieneNoLeidosEnChat
 } from './database.js';
 
 const ITEMS_PER_PAGE = 6;
@@ -30,32 +31,6 @@ const catInfo = {
     'mudanza': 'Mudanza',
     'construccion': 'Construcción'
 };
-
-async function getUltimoMensaje(mensajesRef) {
-    try {
-        const q = query(mensajesRef, orderBy("fecha_envio", "desc"), limit(1));
-        const snap = await getDocs(q);
-        if (snap.empty) return null;
-        return snap.docs[0].data();
-    } catch (_) {
-        return null;
-    }
-}
-
-async function tieneNoLeidos(mensajesRef, myUid) {
-    try {
-        const q = query(
-            mensajesRef,
-            where("leido", "==", false),
-            where("id_receptor", "==", myUid),
-            limit(1)
-        );
-        const snap = await getDocs(q);
-        return !snap.empty;
-    } catch (_) {
-        return false;
-    }
-}
 
 function getEspecialidadPrincipal(ptsCat) {
     if (!ptsCat || ptsCat.length === 0) return null;
@@ -113,19 +88,10 @@ document.addEventListener("DOMContentLoaded", () => {
             await initFechas(user.uid);
             await loadAllConversations(user.uid);
 
-            if (unreadListener) unreadListener();
-
-            try {
-                const { onSnapshot, collection } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                unreadListener = onSnapshot(collection(db, "usuarios", user.uid, "conversaciones"), () => {
-                    console.log("Cambio en conversaciones detectado (Real-time update)...");
-                    loadAllConversations(user.uid);
-                });
-            } catch (e) {
-                console.error("No se pudo cargar el listener en tiempo real:", e);
-            }
+            if (unreadListener) clearInterval(unreadListener);
+            unreadListener = setInterval(() => loadAllConversations(user.uid), 30000);
         } else {
-            if (unreadListener) unreadListener();
+            if (unreadListener) clearInterval(unreadListener);
             window.location.href = '../index.html';
         }
     });
@@ -182,11 +148,9 @@ async function loadAllConversations(uid) {
         for (const meta of convsActivas) {
             try {
                 const { id_chat, id_otro_usuario, id_trabajo, tipo } = meta;
-                const mensajesRef = collection(db, "chats", id_chat, "mensajes");
-
                 const [ultimoMsg, noLeidos, otherUser, ptsCat] = await Promise.all([
-                    getUltimoMensaje(mensajesRef),
-                    tieneNoLeidos(mensajesRef, uid),
+                    obtenerUltimoMensaje(id_chat),
+                    tieneNoLeidosEnChat(id_chat, uid),
                     obtenerUsuarioPorId(id_otro_usuario),
                     obtenerTodosPuntosCategorias(id_otro_usuario)
                 ]);

@@ -1,5 +1,4 @@
-import { auth, db } from './firebase-config.js';
-import { collection, query, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { auth } from './firebase-config.js';
 import { obtenerUsuarioPorId, obtenerTodosPuntosCategorias, obtenerValoracionesRecibidas } from './database.js';
 // --- LÓGICA CARGADA AL VISUALIZAR EL PERFIL DE UN USUARIO EXTERNO ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -33,16 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const user = await obtenerUsuarioPorId(uid);
 
-            const q = query(collection(db, "usuarios", uid, "puntuaciones_categorias"));
-            const snapshot = await getDocs(q);
-            const ptsCat = [];
-            snapshot.forEach(docSnap => {
-                ptsCat.push({
-                    id_categoria: docSnap.id,
-                    puntos: docSnap.data().puntos || 0,
-                    fecha_creacion: docSnap.data().fecha_creacion?.toDate ? docSnap.data().fecha_creacion.toDate() : (docSnap.data().fecha_creacion || 0)
-                });
-            });
+            const ptsCat = await obtenerTodosPuntosCategorias(uid);
 
             const valoraciones = await obtenerValoracionesRecibidas(uid);
 

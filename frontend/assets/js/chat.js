@@ -1,7 +1,6 @@
-import { db, auth, storage } from './firebase-config.js';
-import { collection, query, orderBy, onSnapshot, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { auth, storage } from './firebase-config.js';
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-import { enviarMensajeTrabajo, obtenerTrabajoPorId, obtenerUsuarioPorId, enviarMensajeDirecto, generarIdChat, enviarDenuncia, registrarConversacionActiva } from './database.js';
+import { enviarMensajeTrabajo, obtenerTrabajoPorId, obtenerUsuarioPorId, enviarMensajeDirecto, generarIdChat, enviarDenuncia, registrarConversacionActiva, obtenerMensajesChat, marcarMensajeLeido } from './database.js';
 
 const listaMensajes = document.getElementById('messages');
 const formulario = document.getElementById('chat-form');
@@ -151,23 +150,17 @@ function startMessageListener(myUid, otherUid) {
         return;
     }
 
-    const mensajesRef = collection(db, "chats", chatId, "mensajes");
+    const renderMessages = async () => {
+        const mensajes = await obtenerMensajesChat(chatId);
 
-    const q = query(mensajesRef, orderBy("fecha_envio", "asc"));
-
-    onSnapshot(q, (snapshot) => {
-       
-        snapshot.docs.forEach((msgDoc) => {
-            const data = msgDoc.data();
+        mensajes.forEach((data) => {
             if (data.id_emisor !== myUid && data.leido === false) {
-                updateDoc(doc(mensajesRef.firestore, mensajesRef.path, msgDoc.id), { leido: true })
-                    .catch(err => console.warn('Error marcando leído:', err));
+                marcarMensajeLeido(data.id).catch(err => console.warn('Error marcando leido:', err));
             }
         });
 
         listaMensajes.innerHTML = '';
-        snapshot.forEach((msgDoc) => {
-            const data = msgDoc.data();
+        mensajes.forEach((data) => {
             const isOwn = (data.id_emisor === myUid);
 
             const groupDiv = document.createElement('div');
@@ -191,7 +184,7 @@ function startMessageListener(myUid, otherUid) {
 
             let timeString = "";
             if (data.fecha_envio) {
-                const date = data.fecha_envio.toDate();
+                const date = data.fecha_envio.toDate ? data.fecha_envio.toDate() : new Date(data.fecha_envio);
                 const now = new Date();
                 const isToday = date.getDate() === now.getDate() &&
                     date.getMonth() === now.getMonth() &&
@@ -230,7 +223,10 @@ function startMessageListener(myUid, otherUid) {
             listaMensajes.appendChild(groupDiv);
         });
         listaMensajes.scrollTop = listaMensajes.scrollHeight;
-    });
+    };
+
+    renderMessages().catch(console.error);
+    setInterval(() => renderMessages().catch(console.error), 3000);
 }
 // --- B: ENVIAR MENSAJE ---
 let currentImageBlob = null;
