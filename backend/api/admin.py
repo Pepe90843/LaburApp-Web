@@ -20,23 +20,31 @@ from .models import (
 )
 
 
+class AllFieldsAdmin(admin.ModelAdmin):
+    list_display = ()
+
+    def __init__(self, model, admin_site):
+        self.list_display = tuple(field.name for field in model._meta.fields)
+        super().__init__(model, admin_site)
+
+
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ("uid", "email", "nombre_completo", "nivel", "baneado")
+    list_display = tuple(field.name for field in Usuario._meta.fields)
     search_fields = ("uid", "email", "nombre_completo", "dni")
     list_filter = ("baneado", "renovacion_automatica_cliente", "renovacion_automatica_trabajador")
 
 
 @admin.register(Trabajo)
 class TrabajoAdmin(admin.ModelAdmin):
-    list_display = ("id_trabajo", "titulo", "estado", "publicador", "trabajador", "fecha_publicacion")
+    list_display = tuple(field.name for field in Trabajo._meta.fields)
     search_fields = ("id_trabajo", "titulo", "descripcion", "direccion")
     list_filter = ("estado", "es_tarea_premium", "pago_retenido")
 
 
 @admin.register(Mensaje)
 class MensajeAdmin(admin.ModelAdmin):
-    list_display = ("id_mensaje", "chat", "emisor", "receptor", "tipo_contenido", "leido", "fecha_envio")
+    list_display = tuple(field.name for field in Mensaje._meta.fields)
     search_fields = ("id_mensaje", "contenido")
     list_filter = ("tipo_contenido", "leido")
 
@@ -52,4 +60,4 @@ for model in (
     AdminLog,
     UsuarioEliminado,
 ):
-    admin.site.register(model)
+    admin.site.register(model, AllFieldsAdmin)
