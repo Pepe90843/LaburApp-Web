@@ -16,6 +16,11 @@ function toApiDate(value) {
     return value;
 }
 
+function toApiMoney(value) {
+    const amount = Number(value || 0);
+    return Number(amount.toFixed(2));
+}
+
 function normalizarLista(data) {
     if (Array.isArray(data)) return data;
     if (data && Array.isArray(data.results)) return data.results;
@@ -214,7 +219,7 @@ export async function crearTrabajo(datosTrabajo) {
     const limitCheck = await verificarLimiteCreacionTrabajo(user.uid);
     if (!limitCheck.permitida) throw new Error(limitCheck.mensaje);
 
-    const pagoCliente = Number(datosTrabajo.pagoCliente ?? datosTrabajo.pago_cliente ?? 0);
+    const pagoCliente = toApiMoney(datosTrabajo.pagoCliente ?? datosTrabajo.pago_cliente);
     const trabajo = await apiCreate("/trabajos/", {
         titulo: datosTrabajo.titulo,
         descripcion: datosTrabajo.descripcion,
@@ -226,7 +231,7 @@ export async function crearTrabajo(datosTrabajo) {
         tiempo_estimado_horas: datosTrabajo.tiempo_estimado_horas || null,
         estado: "Pendiente",
         pago_cliente: pagoCliente,
-        pago_trabajador: pagoCliente * 0.9,
+        pago_trabajador: toApiMoney(pagoCliente * 0.9),
         xp_otorgada: Math.round(pagoCliente * 10),
         id_categoria: datosTrabajo.id_categoria,
         publicador: user.uid,
@@ -253,8 +258,9 @@ export async function obtenerTrabajoPorId(idTrabajo) {
 export async function actualizarTrabajo(idTrabajo, datosNuevos) {
     const payload = { ...datosNuevos, fecha_actividad: new Date().toISOString() };
     if (payload.pago_cliente !== undefined) {
-        const pago = Number(payload.pago_cliente);
-        payload.pago_trabajador = pago * 0.9;
+        const pago = toApiMoney(payload.pago_cliente);
+        payload.pago_cliente = pago;
+        payload.pago_trabajador = toApiMoney(pago * 0.9);
         payload.xp_otorgada = Math.round(pago * 10);
     }
     if (payload.id_publicador !== undefined) {

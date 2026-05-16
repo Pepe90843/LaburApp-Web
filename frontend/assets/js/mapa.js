@@ -244,6 +244,11 @@ document.getElementById("save-job-btn").addEventListener("click", async () => {
         return;
     }
 
+    if (!tempMarker) {
+        showCustomAlert("Error en Formulario", "Selecciona una ubicacion en el mapa antes de guardar.");
+        return;
+    }
+
     try {
         const coords = tempMarker.getLatLng();
         await crearTrabajo({
@@ -254,8 +259,8 @@ document.getElementById("save-job-btn").addEventListener("click", async () => {
             pagoCliente: pU,
             tiempo_estimado_horas: time,
             id_categoria: cat,
-            latitud: coords.lat,
-            longitud: coords.lng
+            latitud: Number(coords.lat.toFixed(6)),
+            longitud: Number(coords.lng.toFixed(6))
         });
 
         showCustomAlert("Éxito", "Trabajo publicado correctamente en el mapa.");
