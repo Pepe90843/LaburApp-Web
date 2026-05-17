@@ -1,0 +1,552 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<style>
+    .metrics-page {
+        --labur-red: #d72638;
+        --labur-black: #111111;
+        --labur-gray: #f4f5f7;
+        --labur-border: #d9dde4;
+        --labur-text: #20242c;
+        color: var(--labur-text);
+    }
+
+    .metrics-hero {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+        padding: 22px;
+        background: var(--labur-black);
+        color: #fff;
+        border-radius: 8px;
+    }
+
+    .metrics-hero h1 {
+        margin: 0;
+        color: #fff;
+        font-size: 1.65rem;
+        font-weight: 900;
+        letter-spacing: 0;
+    }
+
+    .metrics-hero p {
+        margin: 6px 0 0;
+        color: #d8dce3;
+    }
+
+    .business-pill {
+        background: var(--labur-red);
+        color: #fff;
+        border-radius: 6px;
+        padding: 9px 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .metrics-filter {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(120px, 1fr));
+        gap: 12px;
+        align-items: end;
+        margin-bottom: 18px;
+        padding: 16px;
+        background: #fff;
+        border: 1px solid var(--labur-border);
+        border-radius: 8px;
+    }
+
+    .metrics-filter label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-weight: 800;
+        color: #343943;
+    }
+
+    .metrics-filter input {
+        min-height: 36px;
+        border: 1px solid var(--labur-border);
+        border-radius: 6px;
+        padding: 6px 9px;
+    }
+
+    .metrics-filter button,
+    .metrics-filter a {
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: 0;
+        padding: 0 12px;
+        text-decoration: none;
+        font-weight: 900;
+    }
+
+    .metrics-filter button {
+        background: var(--labur-red);
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .metrics-filter a {
+        background: var(--labur-gray);
+        color: var(--labur-black);
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(170px, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .metric-card-wide {
+        grid-column: 1 / -1;
+    }
+
+    .metrics-grid-balanced .metric-card {
+        grid-column: span 2;
+    }
+
+    .metric-card {
+        background: #fff;
+        border: 1px solid var(--labur-border);
+        border-left: 5px solid var(--labur-red);
+        border-radius: 8px;
+        padding: 16px;
+    }
+
+    .metric-label {
+        margin: 0 0 8px;
+        color: #606873;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .metric-value {
+        margin: 0;
+        color: var(--labur-black);
+        font-size: 1.95rem;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .metric-sub {
+        margin: 10px 0 0;
+        color: #606873;
+        font-size: 0.88rem;
+    }
+
+    .metric-sub strong.up {
+        color: #168a4a;
+    }
+
+    .metric-sub strong.down {
+        color: #c42734;
+    }
+
+    .metric-sub strong.flat {
+        color: #606873;
+    }
+
+    .charts-layout,
+    .rankings-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .chart-panel,
+    .ranking-panel {
+        background: #fff;
+        border: 1px solid var(--labur-border);
+        border-radius: 8px;
+        padding: 16px;
+    }
+
+    .panel-title {
+        margin: 0 0 14px;
+        color: var(--labur-black);
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .line-chart {
+        width: 100%;
+        height: 300px;
+        border-radius: 8px;
+        background: linear-gradient(#f8f9fb 1px, transparent 1px) 0 0 / 100% 25%;
+    }
+
+    .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 12px;
+        color: #555d68;
+        font-weight: 800;
+    }
+
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        display: inline-block;
+        border-radius: 50%;
+        margin-right: 6px;
+    }
+
+    .donut-wrap {
+        display: grid;
+        place-items: center;
+        min-height: 260px;
+    }
+
+    .donut {
+        width: 210px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: #eef0f3;
+        position: relative;
+    }
+
+    .donut::after {
+        content: "";
+        position: absolute;
+        inset: 42px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1px var(--labur-border);
+    }
+
+    .category-list,
+    .ranking-list {
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .category-list li,
+    .ranking-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-top: 1px solid #eef0f3;
+    }
+
+    .ranking-name {
+        font-weight: 900;
+        color: var(--labur-black);
+    }
+
+    .ranking-total {
+        color: var(--labur-red);
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 1200px) {
+        .metrics-grid {
+            grid-template-columns: repeat(2, minmax(170px, 1fr));
+        }
+
+        .metrics-grid-balanced .metric-card {
+            grid-column: span 1;
+        }
+    }
+
+    @media (max-width: 1100px) {
+        .charts-layout,
+        .rankings-layout,
+        .metrics-filter {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .metrics-hero,
+        .metrics-grid,
+        .charts-layout,
+        .rankings-layout,
+        .metrics-filter {
+            grid-template-columns: 1fr;
+        }
+
+        .metrics-hero {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .metric-card-wide,
+        .metrics-grid-balanced .metric-card {
+            grid-column: 1;
+        }
+    }
+</style>
+
+<div class="metrics-page">
+    <section class="metrics-hero">
+        <div>
+            <h1>Metricas avanzadas de LaburApp</h1>
+            <p>
+                {% if date_range.mode == "day" %}
+                Datos del {{ date_range.start_day|date:"d/m/Y" }} comparados con el dia anterior.
+                {% else %}
+                Datos del {{ date_range.start_day|date:"d/m/Y" }} al {{ date_range.end_day|date:"d/m/Y" }} comparados con los {{ date_range.days_count }} dias anteriores.
+                {% endif %}
+            </p>
+        </div>
+        <strong class="business-pill">Plan business</strong>
+    </section>
+
+    <form class="metrics-filter" method="get">
+        <label>
+            Dia exacto
+            <input type="date" name="fecha" value="{{ filters.fecha }}">
+        </label>
+        <label>
+            Desde
+            <input type="date" name="desde" value="{{ filters.desde }}">
+        </label>
+        <label>
+            Hasta
+            <input type="date" name="hasta" value="{{ filters.hasta }}">
+        </label>
+        <button type="submit">Actualizar metricas</button>
+        <a href="{% url 'admin:business_metrics' %}">Limpiar</a>
+    </form>
+
+    <section class="metrics-grid">
+        <article class="metric-card">
+            <p class="metric-label">Nuevos usuarios</p>
+            <p class="metric-value">{{ summary.new_users }}</p>
+            <p class="metric-sub"><strong class="{{ summary.new_users_change.direction }}">{{ summary.new_users_change.value }}%</strong> frente al periodo anterior. Total: {{ summary.total_users }}</p>
+        </article>
+        <article class="metric-card">
+            <p class="metric-label">Trabajos publicados</p>
+            <p class="metric-value">{{ summary.jobs_count }}</p>
+            <p class="metric-sub"><strong class="{{ summary.jobs_change.direction }}">{{ summary.jobs_change.value }}%</strong> frente al periodo anterior. Total: {{ summary.total_jobs }}</p>
+        </article>
+        <article class="metric-card">
+            <p class="metric-label">Postulaciones</p>
+            <p class="metric-value">{{ summary.applications }}</p>
+            <p class="metric-sub"><strong class="{{ summary.applications_change.direction }}">{{ summary.applications_change.value }}%</strong> frente al periodo anterior</p>
+        </article>
+        <article class="metric-card">
+            <p class="metric-label">Mensajes enviados</p>
+            <p class="metric-value">{{ summary.messages }}</p>
+            <p class="metric-sub"><strong class="{{ summary.messages_change.direction }}">{{ summary.messages_change.value }}%</strong> frente al periodo anterior</p>
+        </article>
+        <article class="metric-card">
+            <p class="metric-label">Denuncias</p>
+            <p class="metric-value">{{ summary.reports }}</p>
+            <p class="metric-sub"><strong class="{{ summary.reports_change.direction }}">{{ summary.reports_change.value }}%</strong> frente al periodo anterior</p>
+        </article>
+        <article class="metric-card">
+            <p class="metric-label">Valoraciones</p>
+            <p class="metric-value">{{ summary.reviews }}</p>
+            <p class="metric-sub"><strong class="{{ summary.reviews_change.direction }}">{{ summary.reviews_change.value }}%</strong> frente al periodo anterior</p>
+        </article>
+        <article class="metric-card">
+            <p class="metric-label">Usuarios activos</p>
+            <p class="metric-value">{{ summary.active_users }}</p>
+            <p class="metric-sub">{{ summary.subscribed_logins }} entraron con suscripcion activa</p>
+        </article>
+        <article class="metric-card">
+            <p class="metric-label">Movimiento de pagos</p>
+            <p class="metric-value">{{ summary.payments_total }} EUR</p>
+            <p class="metric-sub"><strong class="{{ summary.payments_change.direction }}">{{ summary.payments_change.value }}%</strong> frente al periodo anterior</p>
+        </article>
+        <article class="metric-card metric-card-wide">
+            <p class="metric-label">Comisiones ganadas</p>
+            <p class="metric-value">{{ summary.commissions_total }} EUR</p>
+            <p class="metric-sub"><strong class="{{ summary.commissions_change.direction }}">{{ summary.commissions_change.value }}%</strong> por trabajos completados</p>
+        </article>
+    </section>
+
+    <section class="metrics-grid metrics-grid-balanced">
+        <article class="metric-card">
+            <p class="metric-label">Publicadores activos</p>
+            <p class="metric-value">{{ summary.active_publishers }}</p>
+            <p class="metric-sub">Usuarios que han publicado en este periodo</p>
+        </article>
+        <article class="metric-card">
+            <p class="metric-label">Persona con mas publicaciones</p>
+            <p class="metric-value">{{ summary.top_publisher_total }}</p>
+            <p class="metric-sub">{{ summary.top_publisher_name }}</p>
+        </article>
+    </section>
+
+    <section class="charts-layout">
+        <article class="chart-panel">
+            <h2 class="panel-title">Actividad diaria</h2>
+            <svg class="line-chart" id="lineChart" viewBox="0 0 760 300" role="img" aria-label="Grafica de lineas de actividad diaria"></svg>
+            <div class="chart-legend">
+                <span><i class="legend-dot" style="background:#d72638"></i>Usuarios</span>
+                <span><i class="legend-dot" style="background:#111111"></i>Trabajos</span>
+                <span><i class="legend-dot" style="background:#2d9cdb"></i>Postulaciones</span>
+                <span><i class="legend-dot" style="background:#27ae60"></i>Mensajes</span>
+                <span><i class="legend-dot" style="background:#f2994a"></i>Denuncias</span>
+            </div>
+        </article>
+
+        <article class="chart-panel">
+            <h2 class="panel-title">Trabajos por categoria</h2>
+            <div class="donut-wrap">
+                <div class="donut" id="categoryDonut"></div>
+            </div>
+            <ul class="category-list" id="categoryList"></ul>
+        </article>
+    </section>
+
+    <section class="charts-layout">
+        <article class="chart-panel">
+            <h2 class="panel-title">Crecimiento acumulado</h2>
+            <svg class="line-chart" id="cumulativeChart" viewBox="0 0 760 300" role="img" aria-label="Grafica de crecimiento acumulado"></svg>
+            <div class="chart-legend">
+                <span><i class="legend-dot" style="background:#d72638"></i>Usuarios</span>
+                <span><i class="legend-dot" style="background:#111111"></i>Trabajos</span>
+                <span><i class="legend-dot" style="background:#2d9cdb"></i>Postulaciones</span>
+                <span><i class="legend-dot" style="background:#27ae60"></i>Mensajes</span>
+            </div>
+        </article>
+
+        <article class="chart-panel">
+            <h2 class="panel-title">Estados de trabajos</h2>
+            <div class="donut-wrap">
+                <div class="donut" id="statusDonut"></div>
+            </div>
+            <ul class="category-list" id="statusList"></ul>
+        </article>
+    </section>
+
+    <section class="rankings-layout">
+        <article class="ranking-panel">
+            <h2 class="panel-title">Top 10 personas que mas han publicado</h2>
+            <ol class="ranking-list">
+                {% for publisher in top_publishers %}
+                <li>
+                    <span class="ranking-name">{{ publisher.publicador__nombre_completo|default:publisher.publicador__email|default:publisher.publicador__uid }}</span>
+                    <span class="ranking-total">{{ publisher.count }} trabajos</span>
+                </li>
+                {% empty %}
+                <li><span class="ranking-name">No hay publicaciones en este periodo</span><span class="ranking-total">0</span></li>
+                {% endfor %}
+            </ol>
+        </article>
+
+        <article class="ranking-panel">
+            <h2 class="panel-title">Top actividad por mensajes</h2>
+            <ol class="ranking-list">
+                {% for user in top_messagers %}
+                <li>
+                    <span class="ranking-name">{{ user.name }}</span>
+                    <span class="ranking-total">{{ user.messages }} mensajes</span>
+                </li>
+                {% empty %}
+                <li><span class="ranking-name">No hay mensajes en este periodo</span><span class="ranking-total">0</span></li>
+                {% endfor %}
+            </ol>
+        </article>
+    </section>
+
+    <section class="ranking-panel">
+        <h2 class="panel-title">Top trabajadores aceptados</h2>
+        <ol class="ranking-list">
+            {% for worker in top_workers %}
+            <li>
+                <span class="ranking-name">{{ worker.trabajador__nombre_completo|default:worker.trabajador__email|default:worker.trabajador__uid }}</span>
+                <span class="ranking-total">{{ worker.count }} trabajos</span>
+            </li>
+            {% empty %}
+            <li><span class="ranking-name">No hay trabajos aceptados en este periodo</span><span class="ranking-total">0</span></li>
+            {% endfor %}
+        </ol>
+    </section>
+</div>
+
+<script>
+    const lineChartData = JSON.parse('{{ line_chart_data|escapejs }}');
+    const cumulativeChartData = JSON.parse('{{ cumulative_chart_data|escapejs }}');
+    const categoryChartData = JSON.parse('{{ category_chart_data|escapejs }}');
+    const statusChartData = JSON.parse('{{ status_chart_data|escapejs }}');
+    const colors = ["#d72638", "#111111", "#2d9cdb", "#27ae60", "#f2994a", "#9b51e0", "#f2c94c", "#56ccf2", "#6fcf97", "#828282"];
+    const lineSeries = [
+        { key: "users", color: "#d72638" },
+        { key: "jobs", color: "#111111" },
+        { key: "applications", color: "#2d9cdb" },
+        { key: "messages", color: "#27ae60" },
+        { key: "reports", color: "#f2994a" },
+    ];
+
+    function pointsFor(values, maxValue, width, height, padding) {
+        const step = values.length > 1 ? (width - padding * 2) / (values.length - 1) : 0;
+        return values.map((value, index) => {
+            const x = values.length > 1 ? padding + index * step : width / 2;
+            const y = height - padding - (value / maxValue) * (height - padding * 2);
+            return `${x},${y}`;
+        }).join(" ");
+    }
+
+    function renderLineChart(svgId, data, series) {
+        const svg = document.getElementById(svgId);
+        const width = 760;
+        const height = 300;
+        const padding = 34;
+        const allValues = series.flatMap(item => data[item.key] || []);
+        const maxValue = Math.max(1, ...allValues);
+        const labels = lineChartData.labels || [];
+        const labelStep = Math.max(1, Math.ceil(labels.length / 6));
+        const labelNodes = labels.map((label, index) => {
+            if (index % labelStep !== 0 && index !== labels.length - 1) return "";
+            const x = labels.length > 1 ? padding + index * ((width - padding * 2) / (labels.length - 1)) : width / 2;
+            return `<text x="${x}" y="282" text-anchor="middle" font-size="11" fill="#606873">${label.slice(5)}</text>`;
+        }).join("");
+        const seriesNodes = series.map(item => {
+            const points = pointsFor(data[item.key] || [], maxValue, width, height, padding);
+            return `<polyline points="${points}" fill="none" stroke="${item.color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />`;
+        }).join("");
+
+        svg.innerHTML = `
+            <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#cfd5dd" />
+            <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#cfd5dd" />
+            ${seriesNodes}
+            ${labelNodes}
+        `;
+    }
+
+    function renderDonut(donutId, listId, chartData) {
+        const donut = document.getElementById(donutId);
+        const list = document.getElementById(listId);
+        const total = chartData.values.reduce((sum, value) => sum + value, 0);
+        if (!total) {
+            donut.style.background = "#eef0f3";
+            list.innerHTML = "<li><span>Sin datos</span><strong>0%</strong></li>";
+            return;
+        }
+
+        let current = 0;
+        const segments = chartData.values.map((value, index) => {
+            const start = current;
+            const degrees = (value / total) * 360;
+            current += degrees;
+            return `${colors[index % colors.length]} ${start}deg ${current}deg`;
+        });
+        donut.style.background = `conic-gradient(${segments.join(", ")})`;
+        list.innerHTML = chartData.labels.map((label, index) => {
+            const percentage = Math.round((chartData.values[index] / total) * 100);
+            return `<li><span><i class="legend-dot" style="background:${colors[index % colors.length]}"></i>${label}</span><strong>${percentage}%</strong></li>`;
+        }).join("");
+    }
+
+    renderLineChart("lineChart", lineChartData, lineSeries);
+    renderLineChart("cumulativeChart", { labels: lineChartData.labels, ...cumulativeChartData }, lineSeries.slice(0, 4));
+    renderDonut("categoryDonut", "categoryList", categoryChartData);
+    renderDonut("statusDonut", "statusList", statusChartData);
+</script>
+{% endblock %}

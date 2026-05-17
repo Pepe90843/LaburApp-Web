@@ -1,0 +1,115 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | LaburApp admin{% endblock %}
+
+{% block branding %}
+<div class="laburapp-admin-branding">
+    <div id="site-name"><a href="{% url 'admin:index' %}">LaburApp admin</a></div>
+</div>
+{% endblock %}
+
+{% block nav-global %}
+{% if user.is_active and user.is_staff %}
+<div class="business-header-actions">
+    <div class="business-plan">Plan business</div>
+    <a class="business-metrics-button" href="{% url 'admin:business_metrics' %}">Metricas avanzadas</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+    #header {
+        position: relative;
+    }
+
+    .business-header-actions {
+        position: absolute;
+        top: 50%;
+        left: 56%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 2;
+        white-space: nowrap;
+    }
+
+    .business-plan {
+        background: #d72638;
+        color: #fff;
+        border-radius: 6px;
+        padding: 9px 12px;
+        box-shadow: 0 8px 20px rgba(215, 38, 56, 0.22);
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+    }
+
+    .business-metrics-button {
+        background: #111;
+        color: #fff !important;
+        border-radius: 6px;
+        padding: 9px 12px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 800;
+    }
+
+    .business-metrics-button:hover,
+    .business-metrics-button:focus {
+        background: #2f2f2f;
+        color: #fff !important;
+    }
+
+    @media (max-width: 1280px) {
+        .business-header-actions {
+            left: 50%;
+        }
+    }
+
+    @media (max-width: 1080px) {
+        #header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            min-height: 112px;
+            align-items: start;
+        }
+
+        .business-header-actions {
+            position: static;
+            grid-column: 1 / -1;
+            justify-self: start;
+            margin-left: 0;
+            transform: none;
+        }
+    }
+
+    @media (max-width: 640px) {
+        #header {
+            grid-template-columns: 1fr;
+            min-height: 150px;
+            padding-right: 16px;
+        }
+
+        #user-tools {
+            justify-self: start;
+            text-align: left;
+        }
+
+        .business-header-actions {
+            width: 100%;
+            white-space: normal;
+            align-items: stretch;
+        }
+
+        .business-plan,
+        .business-metrics-button {
+            flex: 1 1 150px;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
