@@ -103,12 +103,16 @@
         margin-bottom: 18px;
     }
 
-    .metric-card-wide {
-        grid-column: 1 / -1;
+    .metrics-grid-three {
+        grid-template-columns: repeat(3, minmax(170px, 1fr));
     }
 
-    .metrics-grid-balanced .metric-card {
-        grid-column: span 2;
+    .metrics-grid-two {
+        grid-template-columns: repeat(2, minmax(170px, 1fr));
+    }
+
+    .metric-card-wide {
+        grid-column: 1 / -1;
     }
 
     .metric-card {
@@ -133,6 +137,11 @@
         font-size: 1.95rem;
         font-weight: 900;
         line-height: 1;
+    }
+
+    .metric-value-name {
+        line-height: 1.1;
+        overflow-wrap: anywhere;
     }
 
     .metric-sub {
@@ -167,6 +176,10 @@
         border: 1px solid var(--labur-border);
         border-radius: 8px;
         padding: 16px;
+    }
+
+    .ranking-panel {
+        margin-bottom: 18px;
     }
 
     .panel-title {
@@ -255,8 +268,12 @@
             grid-template-columns: repeat(2, minmax(170px, 1fr));
         }
 
-        .metrics-grid-balanced .metric-card {
-            grid-column: span 1;
+        .metrics-grid-three {
+            grid-template-columns: repeat(3, minmax(170px, 1fr));
+        }
+
+        .metrics-grid-two {
+            grid-template-columns: repeat(2, minmax(170px, 1fr));
         }
     }
 
@@ -282,8 +299,7 @@
             flex-direction: column;
         }
 
-        .metric-card-wide,
-        .metrics-grid-balanced .metric-card {
+        .metric-card-wide {
             grid-column: 1;
         }
     }
@@ -338,15 +354,13 @@
             <p class="metric-sub"><strong class="{{ summary.applications_change.direction }}">{{ summary.applications_change.value }}%</strong> frente al periodo anterior</p>
         </article>
         <article class="metric-card">
-            <p class="metric-label">Mensajes enviados</p>
-            <p class="metric-value">{{ summary.messages }}</p>
-            <p class="metric-sub"><strong class="{{ summary.messages_change.direction }}">{{ summary.messages_change.value }}%</strong> frente al periodo anterior</p>
-        </article>
-        <article class="metric-card">
             <p class="metric-label">Denuncias</p>
             <p class="metric-value">{{ summary.reports }}</p>
             <p class="metric-sub"><strong class="{{ summary.reports_change.direction }}">{{ summary.reports_change.value }}%</strong> frente al periodo anterior</p>
         </article>
+    </section>
+
+    <section class="metrics-grid metrics-grid-three">
         <article class="metric-card">
             <p class="metric-label">Valoraciones</p>
             <p class="metric-value">{{ summary.reviews }}</p>
@@ -358,7 +372,15 @@
             <p class="metric-sub">{{ summary.subscribed_logins }} entraron con suscripcion activa</p>
         </article>
         <article class="metric-card">
-            <p class="metric-label">Movimiento de pagos</p>
+            <p class="metric-label">Mensajes enviados</p>
+            <p class="metric-value">{{ summary.messages }}</p>
+            <p class="metric-sub"><strong class="{{ summary.messages_change.direction }}">{{ summary.messages_change.value }}%</strong> frente al periodo anterior</p>
+        </article>
+    </section>
+
+    <section class="metrics-grid">
+        <article class="metric-card metric-card-wide">
+            <p class="metric-label">Ingresos por suscripciones</p>
             <p class="metric-value">{{ summary.payments_total }} EUR</p>
             <p class="metric-sub"><strong class="{{ summary.payments_change.direction }}">{{ summary.payments_change.value }}%</strong> frente al periodo anterior</p>
         </article>
@@ -369,7 +391,7 @@
         </article>
     </section>
 
-    <section class="metrics-grid metrics-grid-balanced">
+    <section class="metrics-grid metrics-grid-two">
         <article class="metric-card">
             <p class="metric-label">Publicadores activos</p>
             <p class="metric-value">{{ summary.active_publishers }}</p>
@@ -377,8 +399,7 @@
         </article>
         <article class="metric-card">
             <p class="metric-label">Persona con mas publicaciones</p>
-            <p class="metric-value">{{ summary.top_publisher_total }}</p>
-            <p class="metric-sub">{{ summary.top_publisher_name }}</p>
+            <p class="metric-value metric-value-name">{{ summary.top_publisher_name }}</p>
         </article>
     </section>
 
@@ -390,8 +411,7 @@
                 <span><i class="legend-dot" style="background:#d72638"></i>Usuarios</span>
                 <span><i class="legend-dot" style="background:#111111"></i>Trabajos</span>
                 <span><i class="legend-dot" style="background:#2d9cdb"></i>Postulaciones</span>
-                <span><i class="legend-dot" style="background:#27ae60"></i>Mensajes</span>
-                <span><i class="legend-dot" style="background:#f2994a"></i>Denuncias</span>
+                <span><i class="legend-dot" style="background:#27ae60"></i>Denuncias</span>
             </div>
         </article>
 
@@ -412,7 +432,7 @@
                 <span><i class="legend-dot" style="background:#d72638"></i>Usuarios</span>
                 <span><i class="legend-dot" style="background:#111111"></i>Trabajos</span>
                 <span><i class="legend-dot" style="background:#2d9cdb"></i>Postulaciones</span>
-                <span><i class="legend-dot" style="background:#27ae60"></i>Mensajes</span>
+                <span><i class="legend-dot" style="background:#27ae60"></i>Denuncias</span>
             </div>
         </article>
 
@@ -425,34 +445,18 @@
         </article>
     </section>
 
-    <section class="rankings-layout">
-        <article class="ranking-panel">
-            <h2 class="panel-title">Top 10 personas que mas han publicado</h2>
-            <ol class="ranking-list">
-                {% for publisher in top_publishers %}
-                <li>
-                    <span class="ranking-name">{{ publisher.publicador__nombre_completo|default:publisher.publicador__email|default:publisher.publicador__uid }}</span>
-                    <span class="ranking-total">{{ publisher.count }} trabajos</span>
-                </li>
-                {% empty %}
-                <li><span class="ranking-name">No hay publicaciones en este periodo</span><span class="ranking-total">0</span></li>
-                {% endfor %}
-            </ol>
-        </article>
-
-        <article class="ranking-panel">
-            <h2 class="panel-title">Top actividad por mensajes</h2>
-            <ol class="ranking-list">
-                {% for user in top_messagers %}
-                <li>
-                    <span class="ranking-name">{{ user.name }}</span>
-                    <span class="ranking-total">{{ user.messages }} mensajes</span>
-                </li>
-                {% empty %}
-                <li><span class="ranking-name">No hay mensajes en este periodo</span><span class="ranking-total">0</span></li>
-                {% endfor %}
-            </ol>
-        </article>
+    <section class="ranking-panel">
+        <h2 class="panel-title">Top 10 personas que mas han publicado</h2>
+        <ol class="ranking-list">
+            {% for publisher in top_publishers %}
+            <li>
+                <span class="ranking-name">{{ publisher.publicador__nombre_completo|default:publisher.publicador__email|default:publisher.publicador__uid }}</span>
+                <span class="ranking-total">{{ publisher.count }} trabajos</span>
+            </li>
+            {% empty %}
+            <li><span class="ranking-name">No hay publicaciones en este periodo</span><span class="ranking-total">0</span></li>
+            {% endfor %}
+        </ol>
     </section>
 
     <section class="ranking-panel">
@@ -480,8 +484,7 @@
         { key: "users", color: "#d72638" },
         { key: "jobs", color: "#111111" },
         { key: "applications", color: "#2d9cdb" },
-        { key: "messages", color: "#27ae60" },
-        { key: "reports", color: "#f2994a" },
+        { key: "reports", color: "#27ae60" },
     ];
 
     function pointsFor(values, maxValue, width, height, padding) {

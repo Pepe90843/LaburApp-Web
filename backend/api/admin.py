@@ -130,11 +130,9 @@ def business_metrics_view(request):
                 if top_publisher
                 else "Sin datos"
             ),
-            "top_publisher_total": top_publisher["count"] if top_publisher else 0,
         },
         "top_publishers": top_publishers,
         "top_workers": business_metrics.get_top_workers(from_dt, to_dt),
-        "top_messagers": business_metrics.get_message_activity_by_user(from_dt, to_dt),
         "line_chart_data": json.dumps(daily_series),
         "cumulative_chart_data": json.dumps(cumulative_series),
         "category_chart_data": json.dumps(

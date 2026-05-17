@@ -5,11 +5,10 @@ All functions accept datetime bounds and return plain dictionaries/lists so the
 Django admin view stays focused on rendering.
 """
 
-from collections import defaultdict
 from datetime import datetime, timedelta
 
-from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum
-from django.db.models.functions import TruncDate, TruncMonth
+from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q, Sum
+from django.db.models.functions import Abs, TruncDate, TruncMonth
 
 from .models import (
     Denuncia,
@@ -134,13 +133,6 @@ def get_daily_series(from_dt, to_dt):
         .annotate(total=Count("trabajo"))
         .order_by("day")
     )
-    messages_qs = (
-        Mensaje.objects.filter(fecha_envio__range=(from_dt, to_dt))
-        .annotate(day=TruncDate("fecha_envio"))
-        .values("day")
-        .annotate(total=Count("id_mensaje"))
-        .order_by("day")
-    )
     reports_qs = (
         Denuncia.objects.filter(fecha__range=(from_dt, to_dt))
         .annotate(day=TruncDate("fecha"))
@@ -152,7 +144,6 @@ def get_daily_series(from_dt, to_dt):
     labels, users_vals = _fill_daily(users_qs, from_dt, to_dt)
     _, jobs_vals = _fill_daily(jobs_qs, from_dt, to_dt)
     _, applications_vals = _fill_daily(applications_qs, from_dt, to_dt)
-    _, messages_vals = _fill_daily(messages_qs, from_dt, to_dt)
     _, reports_vals = _fill_daily(reports_qs, from_dt, to_dt)
 
     return {
@@ -160,14 +151,13 @@ def get_daily_series(from_dt, to_dt):
         "users": users_vals,
         "jobs": jobs_vals,
         "applications": applications_vals,
-        "messages": messages_vals,
         "reports": reports_vals,
     }
 
 
 def get_cumulative_series(daily):
     cumulative = {}
-    for key in ("users", "jobs", "applications", "messages", "reports"):
+    for key in ("users", "jobs", "applications", "reports"):
         total = 0
         cumulative[key] = []
         for value in daily[key]:
@@ -195,11 +185,18 @@ def get_jobs_by_category(from_dt, to_dt):
 
 
 def get_payment_metrics(from_dt, to_dt, prev_from, prev_to):
+    subscription_filter = Q(detalle_pago__icontains="suscripci")
     current_total = (
-        HistorialPago.objects.filter(fecha_emision__range=(from_dt, to_dt)).aggregate(total=Sum("monto"))["total"] or 0
+        HistorialPago.objects.filter(subscription_filter, fecha_emision__range=(from_dt, to_dt)).aggregate(
+            total=Sum(Abs("monto"))
+        )["total"]
+        or 0
     )
     previous_total = (
-        HistorialPago.objects.filter(fecha_emision__range=(prev_from, prev_to)).aggregate(total=Sum("monto"))["total"] or 0
+        HistorialPago.objects.filter(subscription_filter, fecha_emision__range=(prev_from, prev_to)).aggregate(
+            total=Sum(Abs("monto"))
+        )["total"]
+        or 0
     )
     return {
         "current_total": round(float(current_total), 2),
@@ -254,33 +251,11 @@ def get_active_publishers_count(from_dt, to_dt):
 
 def get_top_workers(from_dt, to_dt, limit=10):
     return list(
-        Trabajo.objects.filter(fecha_aceptacion__range=(from_dt, to_dt), trabajador__isnull=False)
+        Postulacion.objects.filter(estado_postulacion__iexact="Aceptada", fecha_actividad__range=(from_dt, to_dt))
         .values("trabajador__uid", "trabajador__nombre_completo", "trabajador__email")
-        .annotate(count=Count("id_trabajo"))
+        .annotate(count=Count("trabajo", distinct=True))
         .order_by("-count", "trabajador__email")[:limit]
     )
-
-
-def get_message_activity_by_user(from_dt, to_dt, limit=10):
-    sent = defaultdict(int)
-    user_info = {}
-    rows = (
-        Mensaje.objects.filter(fecha_envio__range=(from_dt, to_dt))
-        .values("emisor__uid", "emisor__nombre_completo", "emisor__email")
-        .annotate(count=Count("id_mensaje"))
-        .order_by("-count")[:limit]
-    )
-    for row in rows:
-        uid = row["emisor__uid"]
-        sent[uid] += row["count"]
-        user_info[uid] = {
-            "uid": uid,
-            "name": row["emisor__nombre_completo"] or row["emisor__email"] or uid,
-        }
-    return [
-        {"uid": uid, "name": info["name"], "messages": sent[uid]}
-        for uid, info in sorted(user_info.items(), key=lambda item: sent[item[0]], reverse=True)
-    ]
 
 
 def get_monthly_historical():
