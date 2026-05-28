@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 from decouple import Csv, config
 import dj_database_url
@@ -36,7 +37,8 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=cast_debug)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver', cast=Csv())
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '://onrender.com']
+
 
 
 # Application definition
@@ -144,3 +146,5 @@ CORS_ALLOWED_ORIGINS = config(
     default='http://localhost:5000,http://127.0.0.1:5000,http://localhost:5500,http://127.0.0.1:5500,null',
     cast=Csv(),
 )
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
